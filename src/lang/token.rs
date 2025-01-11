@@ -7,8 +7,10 @@ pub struct Token {
 pub enum TokenType {
     ILLEGAL,
     EOF,
+    EOL,
 
-    IDENT,
+    IDENTIFIER,
+    INT,
 
     ASSIGN,
     PLUS,
@@ -17,8 +19,18 @@ pub enum TokenType {
     RPAREN,
     LBRACE,
     RBRACE,
+    COMMA,
 
     LET,
+    FUNCTION,
+    RETURN,
+}
+
+pub fn create_token_str(token_type: TokenType, literal: &str) -> Token {
+    Token {
+        token_type,
+        literal: format!("{}", literal),
+    }
 }
 
 pub fn create_token(token_type: TokenType, ch: char) -> Token {

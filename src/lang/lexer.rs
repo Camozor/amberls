@@ -56,6 +56,8 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
+    use crate::lang::token::create_token_str;
+
     use super::*;
 
     #[test]
@@ -95,7 +97,62 @@ mod tests {
             let token = lexer.next_token();
             assert_eq!(token.token_type, expected_token.token_type);
             assert_eq!(token.literal, expected_token.literal);
-            println!("OK for {:?}", token.token_type);
         }
+    }
+
+    #[test]
+    fn test_next_token_with_literal_and_function() {
+        let input = r#"let five = 5
+            let ten = 10
+
+            fun add(x, y) {
+                return x + y
+            }
+
+            let result = add(five, ten)"#;
+
+        let mut lexer = Lexer::new(input);
+
+        let expected_tokens = vec![
+            // Line 5
+            create_token_str(TokenType::LET, "let"),
+            create_token_str(TokenType::IDENTIFIER, "five"),
+            create_token_str(TokenType::ASSIGN, "="),
+            create_token_str(TokenType::INT, "5"),
+            create_token_str(TokenType::EOL, ""),
+            // Line 10
+            create_token_str(TokenType::LET, "let"),
+            create_token_str(TokenType::IDENTIFIER, "ten"),
+            create_token_str(TokenType::ASSIGN, "="),
+            create_token_str(TokenType::INT, "10"),
+            create_token_str(TokenType::EOL, ""),
+            create_token_str(TokenType::EOL, ""),
+            // Line add
+            create_token_str(TokenType::FUNCTION, "fun"),
+            create_token_str(TokenType::IDENTIFIER, "add"),
+            create_token_str(TokenType::LPAREN, "("),
+            create_token_str(TokenType::IDENTIFIER, "x"),
+            create_token_str(TokenType::COMMA, ","),
+            create_token_str(TokenType::IDENTIFIER, "y"),
+            create_token_str(TokenType::RPAREN, ")"),
+            create_token_str(TokenType::LBRACE, "{"),
+            create_token_str(TokenType::EOL, ""),
+            // Line return
+            create_token_str(TokenType::RETURN, "return"),
+            create_token_str(TokenType::IDENTIFIER, "x"),
+            create_token_str(TokenType::PLUS, "+"),
+            create_token_str(TokenType::IDENTIFIER, "y"),
+            create_token_str(TokenType::EOL, ""),
+            // Line result
+            create_token_str(TokenType::LET, "let"),
+            create_token_str(TokenType::IDENTIFIER, "result"),
+            create_token_str(TokenType::ASSIGN, "="),
+            create_token_str(TokenType::IDENTIFIER, "add"),
+            create_token_str(TokenType::LPAREN, "("),
+            create_token_str(TokenType::IDENTIFIER, "five"),
+            create_token_str(TokenType::COMMA, ","),
+            create_token_str(TokenType::IDENTIFIER, "ten"),
+            create_token_str(TokenType::RPAREN, ")"),
+        ];
     }
 }
