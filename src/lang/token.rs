@@ -26,16 +26,23 @@ pub enum TokenType {
     RETURN,
 }
 
-pub fn create_token_str(token_type: TokenType, literal: &str) -> Token {
+pub fn create_token(token_type: TokenType, literal: &str) -> Token {
     Token {
         token_type,
         literal: format!("{}", literal),
     }
 }
 
-pub fn create_token(token_type: TokenType, ch: char) -> Token {
+pub fn create_token_string(token_type: TokenType, literal: String) -> Token {
     Token {
         token_type,
-        literal: ch.to_string(),
+        literal: format!("{}", literal),
+    }
+}
+
+pub fn create_token_char(token_type: TokenType, char: char) -> Token {
+    Token {
+        token_type,
+        literal: char.to_string(),
     }
 }

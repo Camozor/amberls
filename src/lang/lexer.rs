@@ -1,6 +1,6 @@
 use core::panic;
 
-use super::token::{create_token, Token, TokenType};
+use super::token::{create_token, create_token_char, create_token_string, Token, TokenType};
 
 pub struct Lexer {
     pub input: String,
@@ -24,13 +24,20 @@ impl Lexer {
 
     pub fn next_token(&mut self) -> Token {
         let token = match self.current_char {
-            '=' => create_token(TokenType::ASSIGN, self.current_char),
-            '+' => create_token(TokenType::PLUS, self.current_char),
-            '(' => create_token(TokenType::LPAREN, self.current_char),
-            ')' => create_token(TokenType::RPAREN, self.current_char),
-            '{' => create_token(TokenType::LBRACE, self.current_char),
-            '}' => create_token(TokenType::RBRACE, self.current_char),
-            _ => create_token(TokenType::ILLEGAL, self.current_char),
+            '=' => create_token_char(TokenType::ASSIGN, self.current_char),
+            '+' => create_token_char(TokenType::PLUS, self.current_char),
+            '(' => create_token_char(TokenType::LPAREN, self.current_char),
+            ')' => create_token_char(TokenType::RPAREN, self.current_char),
+            '{' => create_token_char(TokenType::LBRACE, self.current_char),
+            '}' => create_token_char(TokenType::RBRACE, self.current_char),
+            _ => {
+                if is_letter(self.current_char) {
+                    let identifier = self.read_identifier();
+                    create_token_string(TokenType::IDENTIFIER, identifier)
+                } else {
+                    create_token(TokenType::ILLEGAL, "")
+                }
+            }
         };
 
         self.read_char();
@@ -52,11 +59,28 @@ impl Lexer {
         self.current_position = self.read_position;
         self.read_position += 1;
     }
+
+    pub fn read_identifier(&mut self) -> String {
+        let start_position = self.current_position;
+
+        while is_letter(self.current_char) {
+            self.read_char();
+        }
+        self.input
+            .chars()
+            .skip(start_position)
+            .take(self.current_position - start_position)
+            .collect()
+    }
+}
+
+fn is_letter(char: char) -> bool {
+    char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z'
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::lang::token::create_token_str;
+    use crate::lang::token::create_token;
 
     use super::*;
 
@@ -115,44 +139,50 @@ mod tests {
 
         let expected_tokens = vec![
             // Line 5
-            create_token_str(TokenType::LET, "let"),
-            create_token_str(TokenType::IDENTIFIER, "five"),
-            create_token_str(TokenType::ASSIGN, "="),
-            create_token_str(TokenType::INT, "5"),
-            create_token_str(TokenType::EOL, ""),
+            create_token(TokenType::LET, "let"),
+            create_token(TokenType::IDENTIFIER, "five"),
+            create_token(TokenType::ASSIGN, "="),
+            create_token(TokenType::INT, "5"),
+            create_token(TokenType::EOL, ""),
             // Line 10
-            create_token_str(TokenType::LET, "let"),
-            create_token_str(TokenType::IDENTIFIER, "ten"),
-            create_token_str(TokenType::ASSIGN, "="),
-            create_token_str(TokenType::INT, "10"),
-            create_token_str(TokenType::EOL, ""),
-            create_token_str(TokenType::EOL, ""),
+            create_token(TokenType::LET, "let"),
+            create_token(TokenType::IDENTIFIER, "ten"),
+            create_token(TokenType::ASSIGN, "="),
+            create_token(TokenType::INT, "10"),
+            create_token(TokenType::EOL, ""),
+            create_token(TokenType::EOL, ""),
             // Line add
-            create_token_str(TokenType::FUNCTION, "fun"),
-            create_token_str(TokenType::IDENTIFIER, "add"),
-            create_token_str(TokenType::LPAREN, "("),
-            create_token_str(TokenType::IDENTIFIER, "x"),
-            create_token_str(TokenType::COMMA, ","),
-            create_token_str(TokenType::IDENTIFIER, "y"),
-            create_token_str(TokenType::RPAREN, ")"),
-            create_token_str(TokenType::LBRACE, "{"),
-            create_token_str(TokenType::EOL, ""),
+            create_token(TokenType::FUNCTION, "fun"),
+            create_token(TokenType::IDENTIFIER, "add"),
+            create_token(TokenType::LPAREN, "("),
+            create_token(TokenType::IDENTIFIER, "x"),
+            create_token(TokenType::COMMA, ","),
+            create_token(TokenType::IDENTIFIER, "y"),
+            create_token(TokenType::RPAREN, ")"),
+            create_token(TokenType::LBRACE, "{"),
+            create_token(TokenType::EOL, ""),
             // Line return
-            create_token_str(TokenType::RETURN, "return"),
-            create_token_str(TokenType::IDENTIFIER, "x"),
-            create_token_str(TokenType::PLUS, "+"),
-            create_token_str(TokenType::IDENTIFIER, "y"),
-            create_token_str(TokenType::EOL, ""),
+            create_token(TokenType::RETURN, "return"),
+            create_token(TokenType::IDENTIFIER, "x"),
+            create_token(TokenType::PLUS, "+"),
+            create_token(TokenType::IDENTIFIER, "y"),
+            create_token(TokenType::EOL, ""),
             // Line result
-            create_token_str(TokenType::LET, "let"),
-            create_token_str(TokenType::IDENTIFIER, "result"),
-            create_token_str(TokenType::ASSIGN, "="),
-            create_token_str(TokenType::IDENTIFIER, "add"),
-            create_token_str(TokenType::LPAREN, "("),
-            create_token_str(TokenType::IDENTIFIER, "five"),
-            create_token_str(TokenType::COMMA, ","),
-            create_token_str(TokenType::IDENTIFIER, "ten"),
-            create_token_str(TokenType::RPAREN, ")"),
+            create_token(TokenType::LET, "let"),
+            create_token(TokenType::IDENTIFIER, "result"),
+            create_token(TokenType::ASSIGN, "="),
+            create_token(TokenType::IDENTIFIER, "add"),
+            create_token(TokenType::LPAREN, "("),
+            create_token(TokenType::IDENTIFIER, "five"),
+            create_token(TokenType::COMMA, ","),
+            create_token(TokenType::IDENTIFIER, "ten"),
+            create_token(TokenType::RPAREN, ")"),
         ];
+
+        for expected_token in expected_tokens {
+            let token = lexer.next_token();
+            assert_eq!(token.token_type, expected_token.token_type);
+            assert_eq!(token.literal, expected_token.literal);
+        }
     }
 }
