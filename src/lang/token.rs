@@ -20,3 +20,10 @@ pub enum TokenType {
 
     LET,
 }
+
+pub fn create_token(token_type: TokenType, ch: char) -> Token {
+    Token {
+        token_type,
+        literal: ch.to_string(),
+    }
+}
