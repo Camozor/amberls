@@ -58,6 +58,11 @@ pub fn lookup_identifier(identifier: String) -> Token {
             token_type: TokenType::LET,
             literal: format!("let"),
         };
+    } else if identifier == "return" {
+        return Token {
+            token_type: TokenType::RETURN,
+            literal: format!("return"),
+        };
     }
 
     create_token_string(TokenType::IDENTIFIER, identifier)

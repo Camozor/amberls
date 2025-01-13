@@ -1,6 +1,8 @@
 use core::panic;
 
-use super::token::{create_token, create_token_char, lookup_identifier, Token, TokenType};
+use super::token::{
+    create_token, create_token_char, create_token_string, lookup_identifier, Token, TokenType,
+};
 
 pub struct Lexer {
     pub input: String,
@@ -24,6 +26,7 @@ impl Lexer {
 
     pub fn next_token(&mut self) -> Token {
         self.skip_whitespace();
+
         let token = match self.current_char {
             '=' => create_token_char(TokenType::ASSIGN, self.current_char),
             '+' => create_token_char(TokenType::PLUS, self.current_char),
@@ -31,10 +34,16 @@ impl Lexer {
             ')' => create_token_char(TokenType::RPAREN, self.current_char),
             '{' => create_token_char(TokenType::LBRACE, self.current_char),
             '}' => create_token_char(TokenType::RBRACE, self.current_char),
+            ',' => create_token_char(TokenType::COMMA, self.current_char),
+            '\r' => create_token(TokenType::EOL, "EOL"),
+            '\n' => create_token(TokenType::EOL, "EOL"),
             _ => {
                 if is_letter(self.current_char) {
                     let identifier = self.read_identifier();
-                    lookup_identifier(identifier)
+                    return lookup_identifier(identifier);
+                } else if is_digit(self.current_char) {
+                    let integer = self.read_integer();
+                    return create_token_string(TokenType::INT, integer);
                 } else {
                     create_token(TokenType::ILLEGAL, "")
                 }
@@ -67,6 +76,20 @@ impl Lexer {
         while is_letter(self.current_char) {
             self.read_char();
         }
+
+        self.input
+            .chars()
+            .skip(start_position)
+            .take(self.current_position - start_position)
+            .collect()
+    }
+
+    pub fn read_integer(&mut self) -> String {
+        let start_position = self.current_position;
+
+        while is_digit(self.current_char) {
+            self.read_char();
+        }
         self.input
             .chars()
             .skip(start_position)
@@ -83,6 +106,10 @@ impl Lexer {
 
 fn is_letter(char: char) -> bool {
     char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' || char == '_'
+}
+
+fn is_digit(char: char) -> bool {
+    char >= '0' && char <= '9'
 }
 
 #[cfg(test)]
@@ -150,14 +177,14 @@ mod tests {
             create_token(TokenType::IDENTIFIER, "five"),
             create_token(TokenType::ASSIGN, "="),
             create_token(TokenType::INT, "5"),
-            create_token(TokenType::EOL, ""),
+            create_token(TokenType::EOL, "EOL"),
             // Line 10
             create_token(TokenType::LET, "let"),
             create_token(TokenType::IDENTIFIER, "ten"),
             create_token(TokenType::ASSIGN, "="),
             create_token(TokenType::INT, "10"),
-            create_token(TokenType::EOL, ""),
-            create_token(TokenType::EOL, ""),
+            create_token(TokenType::EOL, "EOL"),
+            create_token(TokenType::EOL, "EOL"),
             // Line add
             create_token(TokenType::FUNCTION, "fun"),
             create_token(TokenType::IDENTIFIER, "add"),
@@ -167,13 +194,16 @@ mod tests {
             create_token(TokenType::IDENTIFIER, "y"),
             create_token(TokenType::RPAREN, ")"),
             create_token(TokenType::LBRACE, "{"),
-            create_token(TokenType::EOL, ""),
+            create_token(TokenType::EOL, "EOL"),
             // Line return
             create_token(TokenType::RETURN, "return"),
             create_token(TokenType::IDENTIFIER, "x"),
             create_token(TokenType::PLUS, "+"),
             create_token(TokenType::IDENTIFIER, "y"),
-            create_token(TokenType::EOL, ""),
+            create_token(TokenType::EOL, "EOL"),
+            create_token(TokenType::RBRACE, "}"),
+            create_token(TokenType::EOL, "EOL"),
+            create_token(TokenType::EOL, "EOL"),
             // Line result
             create_token(TokenType::LET, "let"),
             create_token(TokenType::IDENTIFIER, "result"),
