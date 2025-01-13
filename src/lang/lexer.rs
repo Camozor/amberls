@@ -1,6 +1,8 @@
 use core::panic;
 
-use super::token::{create_token, create_token_char, create_token_string, Token, TokenType};
+use super::token::{
+    create_token, create_token_char, create_token_string, lookup_identifier, Token, TokenType,
+};
 
 pub struct Lexer {
     pub input: String,
@@ -33,7 +35,7 @@ impl Lexer {
             _ => {
                 if is_letter(self.current_char) {
                     let identifier = self.read_identifier();
-                    create_token_string(TokenType::IDENTIFIER, identifier)
+                    lookup_identifier(identifier)
                 } else {
                     create_token(TokenType::ILLEGAL, "")
                 }
@@ -75,7 +77,7 @@ impl Lexer {
 }
 
 fn is_letter(char: char) -> bool {
-    char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z'
+    char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' || char == '_'
 }
 
 #[cfg(test)]

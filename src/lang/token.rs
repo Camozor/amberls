@@ -46,3 +46,19 @@ pub fn create_token_char(token_type: TokenType, char: char) -> Token {
         literal: char.to_string(),
     }
 }
+
+pub fn lookup_identifier(identifier: String) -> Token {
+    if identifier == "fun" {
+        return Token {
+            token_type: TokenType::FUNCTION,
+            literal: format!("fun"),
+        };
+    } else if identifier == "let" {
+        return Token {
+            token_type: TokenType::LET,
+            literal: format!("let"),
+        };
+    }
+
+    create_token_string(TokenType::IDENTIFIER, identifier)
+}
