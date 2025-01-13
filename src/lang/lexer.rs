@@ -1,8 +1,6 @@
 use core::panic;
 
-use super::token::{
-    create_token, create_token_char, create_token_string, lookup_identifier, Token, TokenType,
-};
+use super::token::{create_token, create_token_char, lookup_identifier, Token, TokenType};
 
 pub struct Lexer {
     pub input: String,
@@ -25,6 +23,7 @@ impl Lexer {
     }
 
     pub fn next_token(&mut self) -> Token {
+        self.skip_whitespace();
         let token = match self.current_char {
             '=' => create_token_char(TokenType::ASSIGN, self.current_char),
             '+' => create_token_char(TokenType::PLUS, self.current_char),
@@ -73,6 +72,12 @@ impl Lexer {
             .skip(start_position)
             .take(self.current_position - start_position)
             .collect()
+    }
+
+    pub fn skip_whitespace(&mut self) {
+        while self.current_char == ' ' || self.current_char == '\t' {
+            self.read_char();
+        }
     }
 }
 
@@ -128,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_next_token_with_literal_and_function() {
-        let input = r#"let five = 5
+        let input = r#"let  five = 5
             let ten = 10
 
             fun add(x, y) {
@@ -185,6 +190,7 @@ mod tests {
             let token = lexer.next_token();
             assert_eq!(token.token_type, expected_token.token_type);
             assert_eq!(token.literal, expected_token.literal);
+            println!("token literal={}.", token.literal);
         }
     }
 }
