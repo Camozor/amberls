@@ -37,6 +37,7 @@ impl Lexer {
             ',' => create_token_char(TokenType::COMMA, self.current_char),
             '\r' => create_token(TokenType::EOL, "EOL"),
             '\n' => create_token(TokenType::EOL, "EOL"),
+            '\0' => create_token(TokenType::EOF, ""),
             _ => {
                 if is_letter(self.current_char) {
                     let identifier = self.read_identifier();
